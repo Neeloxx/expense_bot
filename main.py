@@ -64,8 +64,9 @@ def save_expense(message, description, amount):
     try:
         # Сохраняем сумму расходов
         date = datetime.strptime(message.text, '%d.%m.%Y')
+        user_id = message.chat.id
         # Добавляем расход в базу данных
-        add_expense(description, amount, date)
+        add_expense(user_id, description, amount, date)
         bot.send_message(message.chat.id, 'Расход успешно добавлен!')
     except ValueError:
         bot.send_message(message.chat.id, "Неверный формат даты. Введите дату в формате дд.мм.гггг.")
@@ -77,12 +78,14 @@ def save_expense(message, description, amount):
 @bot.message_handler(func=lambda message: message.text == 'Показать расход')
 def handle_show_expenses(message):
     try:
-        expenses = show_expenses()
-        result = show_result()
+        user_id = message.chat.id
+        expenses = show_expenses(user_id)
+        result = show_result(user_id)
         if expenses:
+            expense_text = 'Ваши расходы:\n\n'
             for expense in expenses:
-                expense_text = f'Описание: {expense[0]}\nСумма: {expense[1]} руб.\nДата: {expense[2]}'
-                bot.send_message(message.chat.id, expense_text)
+                expense_text += f'Описание: {expense[0]}\nСумма: {expense[1]} руб.\nДата: {expense[2]}\n'
+            bot.send_message(message.chat.id, expense_text)
             result_text = f'Общая сумма за все время {result} руб.'
             bot.send_message(message.chat.id, result_text)
         else:

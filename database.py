@@ -9,6 +9,7 @@ def create_table():
 
     c.execute('''CREATE TABLE IF NOT EXISTS expenses
                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id REAL,
                 description TEXT,
                 amount REAL,
                 date TEXT)''')
@@ -17,7 +18,7 @@ def create_table():
     conn.close()
 
 
-def add_expense(description, amount, date):
+def add_expense(user_id, description, amount, date):
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
@@ -31,8 +32,8 @@ def add_expense(description, amount, date):
         raise InvalidDateError('Неверный формат даты')
 
     try:
-        c.execute('INSERT INTO expenses (description, amount, date) VALUES (?, ?, ?)',
-                  (description, amount, date.strftime('%d.%m.%Y')))
+        c.execute('INSERT INTO expenses (user_id, description, amount, date) VALUES (?, ?, ?, ?)',
+                  (user_id, description, amount, date.strftime('%d.%m.%Y')))
         conn.commit()
 
     except Exception:
@@ -41,26 +42,26 @@ def add_expense(description, amount, date):
     conn.close()
 
 
-def show_expenses():
+def show_expenses(user_id):
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
-    c.execute('SELECT * FROM expenses')
+    c.execute('SELECT * FROM expenses WHERE user_id = ?', (user_id,))
     rows = c.fetchall()
     expenses = []
 
     for row in rows:
-        expenses.append(row[1:4])
+        expenses.append(row[2:5])
 
     return expenses
 
 
 
-def show_result():
+def show_result(user_id):
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
-    c.execute('SELECT SUM(amount) FROM expenses')
+    c.execute('SELECT SUM(amount) FROM expenses WHERE user_id = ?', (user_id,))
     rows = c.fetchall()
     result = rows[0][0]
     return result
